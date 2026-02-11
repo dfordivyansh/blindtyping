@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="max-w-7xl mx-auto px-6 py-16">
+
+  <!-- Welcome -->
+  <div class="mb-12 text-center">
+    <h2 class="text-4xl md:text-5xl font-extrabold tracking-widest bg-gradient-to-r from-cyan-400 to-green-400 bg-clip-text text-transparent mb-3">
+      DASHBOARD
+    </h2>
+    <p class="text-gray-400 text-lg">
+      Welcome back, <span class="text-white font-semibold">{{ request.user.username }}</span>
+      <i class="fa-solid fa-bolt text-yellow-400"></i>
+    </p>
+  </div>
+
+  <!-- Available Tests -->
+  <div class="bg-black/40 backdrop-blur border border-white/10 rounded-3xl p-8 shadow-2xl">
+    <h3 class="text-2xl font-bold mb-8 text-white flex items-center gap-3">
+      <i class="fa-solid fa-keyboard text-cyan-400"></i>
+      Available Tests
+    </h3>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for test in tests %}
+      <div class="group relative perspective-1000">
+
+        <!-- Card -->
+        <div
+          class="relative h-full rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-slate-900/80 to-black/80 backdrop-blur p-6 transition-all duration-300 transform hover:rotate-x-3 hover:-rotate-y-3 hover:scale-[1.03] hover:border-cyan-400 shadow-lg hover:shadow-cyan-500/20">
+
+          <!-- Canvas Background -->
+          <canvas class="absolute inset-0 w-full h-full rounded-2xl opacity-40 pointer-events-none card-canvas"></canvas>
+
+          <!-- Content -->
+          <div class="relative z-10">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-xl font-semibold text-cyan-300">
+                <i class="fa-solid fa-file-lines"></i> {{ test.title }}
+              </h4>
+              <span class="text-xs px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                LIVE
+              </span>
+            </div>
+
+            <p class="text-gray-400 mb-6">
+              <i class="fa-solid fa-clock text-green-400"></i>
+              Duration:
+              <span class="text-white font-semibold">{{ test.duration }} sec</span>
+            </p>
+
+            <a href="{% url 'take_test' test.id %}"
+              class="block w-full text-center px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-green-400 text-black font-bold hover:opacity-90 transition">
+              <i class="fa-solid fa-play"></i> Start Test
+            </a>
+          </div>
+
+          <!-- Glow Border -->
+          <div class="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition shadow-[0_0_40px_#22c55e40]"></div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-full text-center text-gray-400 py-16">
+        <i class="fa-solid fa-circle-info text-3xl mb-4"></i>
+        <p>No active tests available right now. Please check back later.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="mt-12 flex justify-center gap-6">
+    <a href="{% url 'leaderboard' %}"
+       class="px-8 py-3 rounded-xl border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black transition">
+      <i class="fa-solid fa-trophy"></i> View Leaderboard
+    </a>
+
+    <a href="{% url 'logout' %}"
+       class="px-8 py-3 rounded-xl border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
+  </div>
+</section>
+
+<!-- ================= THREE.JS MINI ANIMATION FOR EACH CARD ================= -->
+<script>
+  document.querySelectorAll(".card-canvas").forEach((canvas) => {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    const count = 300;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(count * 3);
+
+    for (let i = 0; i < count * 3; i++) {
+      positions[i] = (Math.random() - 0.5) * 20;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+    const material = new THREE.PointsMaterial({
+      color: 0x22c55e,
+      size: 0.05,
+      transparent: true,
+      opacity: 0.7,
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    camera.position.z = 10;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      points.rotation.y += 0.001;
+      points.rotation.x += 0.0006;
+      renderer.render(scene, camera);
+    }
+    animate();
+  });
+</script>
+
+<style>
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+</style>
+{% endblock %}

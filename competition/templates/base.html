@@ -1,0 +1,390 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Blind Typing Challenge</title>
+
+    <!-- SEO / Meta -->
+    <meta
+      name="description"
+      content="Blind Typing Challenge - A competitive typing competition platform for college fests. Test your speed, accuracy and focus." />
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+    <style>
+            @media (max-width: 1024px) {
+              #desktop-only-overlay {
+                display: flex;
+              }
+              #site-wrapper {
+                display: none;
+              }
+            }
+
+            @keyframes float {
+              0%,
+              100% {
+                transform: translateY(0px);
+              }
+              50% {
+                transform: translateY(-10px);
+              }
+            }
+
+            @keyframes glow {
+              0%,
+              100% {
+                opacity: 0.6;
+              }
+              50% {
+                opacity: 1;
+              }
+            }
+
+            @keyframes fadeUp {
+              from {
+                opacity: 0;
+                transform: translateY(30px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+
+            .animate-fadeUp {
+              animation: fadeUp 1s ease-out forwards;
+            }
+            .animate-float {
+              animation: float 4s ease-in-out infinite;
+            }
+            .animate-glow {
+              animation: glow 3s ease-in-out infinite;
+            }
+
+            /* Loader typing animation */
+      @keyframes loaderFadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      @keyframes loaderPulse {
+        0%, 100% { filter: drop-shadow(0 0 20px #22c55e); }
+        50% { filter: drop-shadow(0 0 40px #22c55e); }
+      }
+
+      @keyframes textGlow {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 1; }
+      }
+
+      .loader-animate {
+        animation: loaderFadeIn 0.8s ease-out forwards;
+      }
+
+      .logo-pulse {
+        animation: float 3s ease-in-out infinite, loaderPulse 3s ease-in-out infinite;
+      }
+
+      .text-glow {
+        animation: textGlow 2s ease-in-out infinite;
+      }
+
+            }
+    </style>
+  </head>
+
+  <body class="bg-slate-950 text-gray-100 overflow-x-hidden">
+    <!-- ================= LOADER ================= -->
+    <div
+      id="loader"
+      class="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-slate-950 loader-animate">
+      <img
+        src="{% static 'images/logo.png' %}"
+        class="h-28 mb-6 logo-pulse"
+        alt="Logo" />
+
+      <div
+        class="text-2xl md:text-3xl font-bold tracking-widest bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent text-glow">
+        BLIND TYPING CHALLENGE
+      </div>
+
+      <div class="mt-6 text-gray-400 text-sm">Loading experience...</div>
+    </div>
+
+    <script>
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          const loader = document.getElementById("loader");
+          loader.style.opacity = "0";
+          loader.style.transition = "opacity 0.6s ease";
+          setTimeout(() => (loader.style.display = "none"), 600);
+        }, 1800);
+      });
+    </script>
+
+    <!-- ================= MOBILE BLOCK ================= -->
+    <div
+      id="desktop-only-overlay"
+      class="hidden fixed inset-0 z-50 bg-slate-950 text-white items-center justify-center text-center p-6">
+      <div>
+        <h1 class="text-3xl font-bold mb-4">
+          <i class="fa-solid fa-desktop"></i> Desktop Only
+        </h1>
+        <p class="text-lg text-gray-300">
+          Please open this website on a laptop or desktop.
+        </p>
+      </div>
+    </div>
+
+    <div id="site-wrapper">
+      <!-- ================= HEADER ================= -->
+      <header
+        class="fixed top-0 left-0 right-0 z-40 bg-black/70 backdrop-blur border-b border-white/10">
+        <div
+          class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <!-- Logo -->
+          <a href="/" class="flex items-center gap-3">
+            <img
+              src="{% static 'images/logo.png' %}"
+              class="h-10 w-10 drop-shadow-[0_0_10px_#22c55e] cursor-pointer" />
+            <span
+              class="text-xl font-bold tracking-wider bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent cursor-pointer">
+              Blind Typing Challenge
+            </span>
+          </a>
+
+          <!-- Navbar -->
+          <nav class="flex items-center gap-8 text-sm font-semibold">
+            {% with request.path as path %}
+
+            <!-- Home -->
+            <a
+              href="/"
+              class="flex items-center gap-2 transition {% if path == '/' %} text-green-400 border-b-2 border-green-400 pb-1 {% else %} hover:text-green-400 {% endif %}">
+              <i class="fa-solid fa-house"></i> Home
+            </a>
+            <a
+              href="/rules/"
+              class="flex items-center gap-2 transition {% if path == '/rules/' %} text-green-400 border-b-2 border-green-400 pb-1 {% else %} hover:text-green-400 {% endif %}">
+              <i class="fa-solid fa-scroll"></i> Rules
+            </a>
+
+            <!-- Leaderboard -->
+            <a
+              href="/leaderboard/"
+              class="flex items-center gap-2 transition {% if '/leaderboard' in path %} text-green-400 border-b-2 border-green-400 pb-1 {% else %} hover:text-green-400 {% endif %}">
+              <i class="fa-solid fa-trophy"></i> Leaderboard
+            </a>
+
+            {% if request.user.is_authenticated %}
+            <!-- Dashboard / Profile -->
+            <a
+              href="/dashboard"
+              class="flex items-center gap-3 px-4 py-2 rounded-xl font-bold transition {% if '/dashboard' in path %} bg-gradient-to-r from-purple-500 to-green-400 text-black ring-2 ring-green-400 {% else %} bg-gradient-to-r from-purple-500 to-green-400 text-black hover:opacity-90 {% endif %}">
+              <div
+                class="h-8 w-8 rounded-full bg-black/30 flex items-center justify-center font-bold">
+                {{ request.user.username|first|upper }}
+              </div>
+              <span>{{ request.user.username }}</span>
+            </a>
+
+            <!-- Logout -->
+            <a
+              href="/accounts/logout/"
+              class="flex items-center gap-2 text-red-400 hover:text-red-300 transition">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+
+            {% else %}
+            <!-- Login -->
+            <a
+              href="/accounts/login/"
+              class="flex items-center gap-2 transition {% if '/accounts/login' in path %} text-green-400 border-b-2 border-green-400 pb-1 {% else %} hover:text-green-400 {% endif %}">
+              <i class="fa-solid fa-right-to-bracket"></i> Login
+            </a>
+
+            <!-- Signup -->
+            <a
+              href="/accounts/signup/"
+              class="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition {% if '/accounts/signup' in path %} bg-gradient-to-r from-purple-500 to-green-400 text-black ring-2 ring-green-400 {% else %} bg-gradient-to-r from-purple-500 to-green-400 text-black hover:opacity-90 {% endif %}">
+              <i class="fa-solid fa-user-plus"></i> Sign Up
+            </a>
+            {% endif %} {% endwith %}
+          </nav>
+        </div>
+      </header>
+
+      <!-- ================= HERO (HOME ONLY) ================= -->
+      {% if request.path == "/" %}
+      <section
+        class="relative min-h-screen flex items-center justify-center overflow-hidden pt-40">
+        <canvas
+          id="hero-canvas"
+          class="absolute inset-0 w-full h-full"></canvas>
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-slate-950 to-green-900/40"></div>
+
+        <div class="relative z-10 max-w-5xl px-6 animate-fadeUp text-center">
+          <img
+            src="{% static 'images/logo.png' %}"
+            class="mx-auto h-40 mb-6 animate-float drop-shadow-[0_0_40px_#22c55e]" />
+          <div
+            class="inline-block mb-4 px-4 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-purple-500 to-green-400 text-black">
+            <i class="fa-solid fa-graduation-cap"></i> College Fest Edition
+          </div>
+          <h1
+            class="text-6xl font-extrabold tracking-widest mb-6 bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">
+            BLIND TYPING CHALLENGE
+          </h1>
+
+          <p class="text-xl text-gray-300 mb-10">
+            <i class="fa-solid fa-bolt"></i> Speed.
+            <i class="fa-solid fa-crosshairs"></i> Accuracy.
+            <i class="fa-solid fa-brain"></i> Focus.
+          </p>
+
+          <div class="flex justify-center gap-6 mb-12">
+            <a
+              href="/dashboard"
+              class="px-10 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-green-400 text-black font-bold hover:scale-105 transition">
+              <i class="fa-solid fa-play"></i> Enter Competition
+            </a>
+            <a
+              href="/leaderboard/"
+              class="px-10 py-4 rounded-xl border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition">
+              <i class="fa-solid fa-trophy"></i> Leaderboard
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= EXTRA HOME CONTENT ================= -->
+      <section
+        class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-10 text-center">
+        <div class="bg-white/5 p-8 rounded-2xl border border-white/10">
+          <i class="fa-solid fa-keyboard text-4xl text-green-400 mb-4"></i>
+          <h3 class="text-xl font-bold mb-2">Blind Typing Mode</h3>
+          <p class="text-gray-400">
+            Characters appear one by one. No cheating. Pure skill.
+          </p>
+        </div>
+
+        <div class="bg-white/5 p-8 rounded-2xl border border-white/10">
+          <i
+            class="fa-solid fa-shield-halved text-4xl text-purple-400 mb-4"></i>
+          <h3 class="text-xl font-bold mb-2">Anti-Cheat System</h3>
+          <p class="text-gray-400">
+            Tab switch, paste, shortcuts & bot detection enabled.
+          </p>
+        </div>
+
+        <div class="bg-white/5 p-8 rounded-2xl border border-white/10">
+          <i class="fa-solid fa-ranking-star text-4xl text-cyan-400 mb-4"></i>
+          <h3 class="text-xl font-bold mb-2">Live Rankings</h3>
+          <p class="text-gray-400">
+            Auto leaderboard & result analytics after each test.
+          </p>
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- ================= MAIN CONTENT ================= -->
+      <main class="relative z-10 pt-24">{% block content %}{% endblock %}</main>
+
+      <!-- ================= FOOTER ================= -->
+      <footer class="bg-black border-t border-white/10 mt-20">
+        <div class="max-w-7xl mx-auto px-6 py-10 text-center">
+          <p class="text-gray-400">
+            Built by
+            <span class="text-green-400 font-semibold"
+              >Divyansh Srivastava</span
+            >
+          </p>
+          <div class="flex justify-center gap-6 mt-4">
+            <a
+              href="https://github.com/dfordivyansh"
+              target="_blank"
+              class="hover:text-green-400"
+              ><i class="fa-brands fa-github"></i> GitHub</a
+            >
+            <a
+              href="https://www.linkedin.com/in/divyanshsrivastava1"
+              target="_blank"
+              class="hover:text-green-400"
+              ><i class="fa-brands fa-linkedin"></i> LinkedIn</a
+            >
+          </div>
+          <p class="text-xs text-gray-500 mt-4">
+            © {{ now|date:"Y" }} Blind Typing Challenge
+          </p>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ================= THREE.JS BACKGROUND ================= -->
+    <script>
+      const canvas = document.getElementById("hero-canvas");
+      if (canvas) {
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000,
+        );
+        const renderer = new THREE.WebGLRenderer({
+          canvas: canvas,
+          alpha: true,
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        const count = 1800;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(count * 3);
+
+        for (let i = 0; i < count * 3; i++) {
+          positions[i] = (Math.random() - 0.5) * 100;
+        }
+
+        geometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(positions, 3),
+        );
+
+        const material = new THREE.PointsMaterial({
+          color: 0x22c55e,
+          size: 0.06,
+          transparent: true,
+          opacity: 0.8,
+        });
+        const points = new THREE.Points(geometry, material);
+        scene.add(points);
+
+        camera.position.z = 40;
+
+        function animate() {
+          requestAnimationFrame(animate);
+          points.rotation.y += 0.0005;
+          points.rotation.x += 0.0003;
+          renderer.render(scene, camera);
+        }
+        animate();
+      }
+    </script>
+  </body>
+</html>

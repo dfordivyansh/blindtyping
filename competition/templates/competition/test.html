@@ -1,0 +1,234 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<section class="min-h-[80vh] flex items-center justify-center px-6 py-12">
+  <div class="max-w-5xl w-full">
+    <!-- Header -->
+    <div
+      class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      <div>
+        <h2
+          class="text-3xl md:text-4xl font-extrabold tracking-widest bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">
+          {{ test.title }}
+        </h2>
+        <p class="text-gray-400 mt-1">
+          <i class="fa-solid fa-clock text-green-400"></i>
+          Duration: {{ test.duration }} seconds
+        </p>
+      </div>
+
+      <!-- Timer -->
+      <div class="mt-4 md:mt-0">
+        <div
+          id="timer"
+          class="text-2xl md:text-3xl font-bold px-6 py-3 rounded-xl bg-black/40 border border-white/10 text-green-400 shadow-lg">
+          {{ test.duration }}s
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="w-full h-3 bg-white/10 rounded-full overflow-hidden mb-6">
+      <div
+        id="progressBar"
+        class="h-full w-0 bg-gradient-to-r from-purple-500 to-green-400 transition-all duration-300"></div>
+    </div>
+
+    <!-- Test Card -->
+    <div
+      class="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+      <!-- Display Text -->
+      <div
+        id="display"
+        class="min-h-[120px] text-2xl md:text-3xl leading-relaxed font-mono tracking-wide text-white mb-6 p-6 rounded-2xl bg-slate-900/60 border border-white/10"></div>
+
+      <!-- Input -->
+      <textarea
+        id="input"
+        rows="4"
+        placeholder="Start typing here..."
+        class="w-full text-xl font-mono p-4 rounded-2xl bg-black/60 border border-white/20 focus:outline-none focus:ring-2 focus:ring-green-400 text-white resize-none"></textarea>
+
+      <!-- Hints -->
+      <div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-400">
+        <span><i class="fa-solid fa-expand"></i> Fullscreen locked</span>
+        <span><i class="fa-solid fa-eye-slash"></i> Blind typing mode</span>
+        <span
+          ><i class="fa-solid fa-shield-halved"></i> Anti-cheat enabled</span
+        >
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+    const fullText = `{{ test.text|escapejs }}`;
+    const duration = {{ test.duration }};
+
+    const display = document.getElementById("display");
+    const input = document.getElementById("input");
+    const timerDiv = document.getElementById("timer");
+    const progressBar = document.getElementById("progressBar");
+
+    input.focus();
+
+    let startTime = null;
+    let timeLeft = duration;
+    let timerInterval = null;
+    let testStarted = false;
+
+    let keystrokes = [];
+    let tabSwitches = 0;
+    let pasteAttempts = 0;
+    let backspaceCount = 0;
+
+    // Render text with smooth styling
+    function renderText(upto) {
+      let html = "";
+
+      // Typed part (green)
+      html += `<span class="text-green-400">${fullText.slice(0, upto)}</span>`;
+
+      // Current character (highlight)
+      if (upto < fullText.length) {
+        html += `<span class="bg-green-400/20 text-green-300 animate-pulse px-0.5">${fullText[upto]}</span>`;
+      }
+
+      // Do NOT show the rest (blind mode)
+      display.innerHTML = html;
+    }
+
+
+    renderText(0);
+
+    // 🔒 Start test
+    function startTest() {
+      if (testStarted) return;
+      testStarted = true;
+
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+
+      startTime = new Date();
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDiv.innerText = timeLeft + "s";
+
+        if (timeLeft <= 10) {
+          timerDiv.classList.add("text-red-400");
+        }
+
+        if (timeLeft <= 0) {
+          finishTest();
+        }
+      }, 1000);
+    }
+
+    // 🚫 Exit fullscreen = disqualify
+    document.addEventListener("fullscreenchange", () => {
+      if (testStarted && !document.fullscreenElement) {
+        disqualify("Exited fullscreen");
+      }
+    });
+
+    // 🚫 Switch tab/window = disqualify
+    window.addEventListener("blur", () => {
+      if (testStarted) {
+        tabSwitches++;
+        disqualify("Switched window/tab");
+      }
+    });
+
+    // 🚫 Block paste
+    document.addEventListener("paste", e => { e.preventDefault(); pasteAttempts++; });
+
+    // Track backspace + keystrokes
+    input.addEventListener("keydown", function(e) {
+      keystrokes.push(Date.now());
+      if (e.key === "Backspace") backspaceCount++;
+    });
+
+    // Main typing handler
+    input.addEventListener("input", function() {
+      if (!testStarted) startTest();
+
+      const typed = input.value;
+      const len = typed.length;
+
+      // Reveal text smoothly
+      renderText(len);
+
+      // Progress bar
+      const progress = Math.min((len / fullText.length) * 100, 100);
+      progressBar.style.width = progress + "%";
+
+      if (len >= fullText.length) {
+        finishTest();
+      }
+    });
+
+    // 🛑 Disqualify
+    let alreadyFinished = false;
+
+    function disqualify(reason) {
+      if (alreadyFinished) return;
+      alreadyFinished = true;
+
+      clearInterval(timerInterval);
+
+      // Optional: show a nice message
+      alert("Test cancelled: " + reason);
+
+      sendResult(true);
+    }
+
+
+    // ✅ Finish normally
+    function finishTest() {
+      if (alreadyFinished) return;
+      alreadyFinished = true;
+
+      clearInterval(timerInterval);
+      sendResult(false);
+    }
+
+
+    // 📤 Send result
+    function sendResult(disqualified) {
+      const endTime = new Date();
+      const timeTaken = startTime ? (endTime - startTime) / 1000 : 0;
+
+      const typed = input.value;
+
+      const words = typed.trim().split(/\s+/).length;
+      const wpm = timeTaken > 0 ? Math.round((words / timeTaken) * 60) : 0;
+
+      let correct = 0;
+      for (let i = 0; i < Math.min(fullText.length, typed.length); i++) {
+        if (fullText[i] === typed[i]) correct++;
+      }
+      const accuracy = ((correct / fullText.length) * 100).toFixed(2);
+
+      fetch("/submit/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: `test_id={{ test.id }}&wpm=${wpm}&accuracy=${accuracy}&time=${timeTaken}&tab_switches=${tabSwitches}&paste_attempts=${pasteAttempts}&backspace_count=${backspaceCount}&disqualified=${disqualified}&keystrokes=${encodeURIComponent(JSON.stringify(keystrokes))}`
+   }).then(() => {
+    // First logout, then go to login page
+    fetch("/accounts/logout/", { method: "GET" })
+      .then(() => {
+        window.location.href = "/accounts/login/";
+      })
+      .catch(() => {
+        // Fallback if logout fails
+        window.location.href = "/accounts/login/";
+      });
+  });
+
+
+    }
+</script>
+{% endblock %}
