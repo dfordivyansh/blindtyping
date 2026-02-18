@@ -81,20 +81,24 @@
     let backspaceCount = 0;
 
     // Render text with smooth styling
-    function renderText(upto) {
-      let html = "";
+  function renderText(upto) {
+    let html = "";
 
-      // Typed part (green)
-      html += `<span class="text-green-400">${fullText.slice(0, upto)}</span>`;
-
-      // Current character (highlight)
-      if (upto < fullText.length) {
-        html += `<span class="bg-green-400/20 text-green-300 animate-pulse px-0.5">${fullText[upto]}</span>`;
+    for (let i = 0; i < fullText.length; i++) {
+      if (i < upto) {
+        // Already typed characters
+        html += `<span class="text-green-400">${fullText[i]}</span>`;
+      } else if (i === upto) {
+        // Current pointer character
+        html += `<span class="bg-green-400/20 text-green-300 animate-pulse px-0.5">${fullText[i]}</span>`;
+      } else {
+        // Remaining text (visible but not typed yet)
+        html += `<span class="text-gray-400">${fullText[i]}</span>`;
       }
-
-      // Do NOT show the rest (blind mode)
-      display.innerHTML = html;
     }
+
+    display.innerHTML = html;
+  }
 
 
     renderText(0);
